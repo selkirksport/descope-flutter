@@ -17,7 +17,8 @@ abstract class DescopeAuth {
   /// This can be called at any time as long as the [refreshJwt] is still
   /// valid. Typically called when a [DescopeSession]'s [sessionJwt] is expired
   /// or is about expire.
-  Future<RefreshResponse> refreshSession(String refreshJwt);
+  Future<RefreshResponse> refreshSession(String refreshJwt,
+      {String? externalToken});
 
   /// It's a good security practice to remove refresh JWTs from the Descope servers if
   /// they become redundant before expiry. This function will called with a [RevokeType], usually [RevokeType.currentSession],
@@ -61,9 +62,9 @@ abstract class DescopeAuth {
 /// and `Web Components` on the web.
 /// If targeting Android you need to set up `Android App Links` in order to communicate back
 /// to the application. Read more about it in the README under the `Running Flows` section.
-@Deprecated('When targeting iOS and Android please use DescopeFlowView. Other platforms will be supported soon, until then DescopeFlow is still available.')
+@Deprecated(
+    'When targeting iOS and Android please use DescopeFlowView. Other platforms will be supported soon, until then DescopeFlow is still available.')
 abstract class DescopeFlow {
-
   /// Starts a user authentication flow.
   ///
   /// The flow presentation differs according to the target:
@@ -121,13 +122,19 @@ abstract class DescopeOtp {
   /// **Important:** Make sure the delivery information corresponding with
   /// the delivery [method] is given either in the optional [details] parameter or as
   /// the [loginId] itself, i.e., the email address, phone number, etc.
-  Future<String> signUp({required DeliveryMethod method, required String loginId, SignUpDetails? details});
+  Future<String> signUp(
+      {required DeliveryMethod method,
+      required String loginId,
+      SignUpDetails? details});
 
   /// Authenticates an existing user using an OTP
   ///
   /// The OTP code will be sent to the user identified by [loginId]
   /// via a delivery [method] of choice.
-  Future<String> signIn({required DeliveryMethod method, required String loginId, SignInOptions? options});
+  Future<String> signIn(
+      {required DeliveryMethod method,
+      required String loginId,
+      SignInOptions? options});
 
   /// Authenticates an existing user if one exists, or creates a new user
   /// using an OTP
@@ -138,13 +145,19 @@ abstract class DescopeOtp {
   /// **Important**: Make sure the delivery information corresponding with
   /// the delivery [method] is given either in the optional [user] parameter or as
   /// the [loginId] itself, i.e., the email address, phone number, etc.
-  Future<String> signUpOrIn({required DeliveryMethod method, required String loginId, SignInOptions? options});
+  Future<String> signUpOrIn(
+      {required DeliveryMethod method,
+      required String loginId,
+      SignInOptions? options});
 
   /// Verifies an OTP [code] sent to the user.
   ///
   /// Provide this functions with the [loginId] and [method] of delivery used to
   /// send the [code]. Upon successful authentication an [AuthenticationResponse] is returned.
-  Future<AuthenticationResponse> verify({required DeliveryMethod method, required String loginId, required String code});
+  Future<AuthenticationResponse> verify(
+      {required DeliveryMethod method,
+      required String loginId,
+      required String code});
 
   /// Updates an existing user by adding an email address.
   ///
@@ -157,7 +170,11 @@ abstract class DescopeOtp {
   /// as a `loginId` for the updated user, and to determine how to resolve conflicts
   /// if another user already exists with the same `loginId`. See the documentation
   /// for `UpdateOptions` for more details.
-  Future<String> updateEmail({required String email, required String loginId, required String refreshJwt, UpdateOptions? options});
+  Future<String> updateEmail(
+      {required String email,
+      required String loginId,
+      required String refreshJwt,
+      UpdateOptions? options});
 
   /// Updates an existing user by adding a phone number.
   ///
@@ -172,7 +189,12 @@ abstract class DescopeOtp {
   /// for `UpdateOptions` for more details.
   ///
   /// **Important:** Make sure delivery [method] is appropriate for using a phone number.
-  Future<String> updatePhone({required String phone, required DeliveryMethod method, required String loginId, required String refreshJwt, UpdateOptions? options});
+  Future<String> updatePhone(
+      {required String phone,
+      required DeliveryMethod method,
+      required String loginId,
+      required String refreshJwt,
+      UpdateOptions? options});
 }
 
 /// Authenticate users using Timed One-time Passwords (TOTP) codes.
@@ -187,7 +209,8 @@ abstract class DescopeTotp {
   /// It returns a [TotpResponse.key] (seed) that allows
   /// authenticator apps to generate TOTP codes. The same information
   /// is returned in multiple formats.
-  Future<TotpResponse> signUp({required String loginId, SignUpDetails? details});
+  Future<TotpResponse> signUp(
+      {required String loginId, SignUpDetails? details});
 
   /// Updates an existing user by adding TOTP as an authentication method.
   ///
@@ -197,13 +220,15 @@ abstract class DescopeTotp {
   /// This function returns a [TotpResponse.key] (seed) that allows
   /// authenticator apps to generate TOTP codes. The same information
   /// is returned in multiple formats.
-  Future<TotpResponse> update({required String loginId, required String refreshJwt});
+  Future<TotpResponse> update(
+      {required String loginId, required String refreshJwt});
 
   /// Verifies a TOTP code that was generated by an authenticator app.
   ///
   /// Returns an [AuthenticationResponse] if the provided [loginId] and the [code]
   /// generated by an authenticator app match.
-  Future<AuthenticationResponse> verify({required String loginId, required String code, SignInOptions? options});
+  Future<AuthenticationResponse> verify(
+      {required String loginId, required String code, SignInOptions? options});
 }
 
 /// Authenticate users using a password.
@@ -216,13 +241,17 @@ abstract class DescopePassword {
   /// defined in the password settings in the Descope console.
   /// The optional [details] provides additional details about the user signing up.
   /// Returns an [AuthenticationResponse] upon successful authentication.
-  Future<AuthenticationResponse> signUp({required String loginId, required String password, SignUpDetails? details});
+  Future<AuthenticationResponse> signUp(
+      {required String loginId,
+      required String password,
+      SignUpDetails? details});
 
   /// Authenticates an existing user using a password.
   ///
   /// Matches the provided [loginId] and [password].
   /// Returns an [AuthenticationResponse] upon successful authentication.
-  Future<AuthenticationResponse> signIn({required String loginId, required String password});
+  Future<AuthenticationResponse> signIn(
+      {required String loginId, required String password});
 
   /// Updates a user's password.
   ///
@@ -232,7 +261,10 @@ abstract class DescopePassword {
   /// Updates the user identified by [loginId] with [newPassword].
   /// [newPassword] must conform to the password policy defined in the
   /// password settings in the Descope console
-  Future<void> update({required String loginId, required String newPassword, required String refreshJwt});
+  Future<void> update(
+      {required String loginId,
+      required String newPassword,
+      required String refreshJwt});
 
   /// Replaces a user's password by providing their current password.
   ///
@@ -240,7 +272,10 @@ abstract class DescopePassword {
   /// [newPassword] must conform to the password policy defined in the
   /// password settings in the Descope console
   /// Returns an [AuthenticationResponse] upon successful replacement and authentication.
-  Future<AuthenticationResponse> replace({required String loginId, required String oldPassword, required String newPassword});
+  Future<AuthenticationResponse> replace(
+      {required String loginId,
+      required String oldPassword,
+      required String newPassword});
 
   /// Sends a password reset email to the user.
   ///
@@ -284,7 +319,11 @@ abstract class DescopeMagicLink {
   ///
   /// **Important:** Make sure a default magic link URL is configured
   /// in the Descope console, or provided by this call via [redirectUrl].
-  Future<String> signUp({required DeliveryMethod method, required String loginId, SignUpDetails? details, String? redirectUrl});
+  Future<String> signUp(
+      {required DeliveryMethod method,
+      required String loginId,
+      SignUpDetails? details,
+      String? redirectUrl});
 
   /// Authenticates an existing user using a magic link.
   ///
@@ -293,7 +332,11 @@ abstract class DescopeMagicLink {
   ///
   /// **Important:** Make sure a default magic link URL is configured
   /// in the Descope console, or provided by this call via [redirectUrl].
-  Future<String> signIn({required DeliveryMethod method, required String loginId, String? redirectUrl, SignInOptions? options});
+  Future<String> signIn(
+      {required DeliveryMethod method,
+      required String loginId,
+      String? redirectUrl,
+      SignInOptions? options});
 
   /// Authenticates an existing user if one exists, or creates a new user
   /// using a magic link.
@@ -307,7 +350,11 @@ abstract class DescopeMagicLink {
   ///
   /// **Important:** Make sure a default magic link URL is configured
   /// in the Descope console, or provided by this call via [redirectUrl].
-  Future<String> signUpOrIn({required DeliveryMethod method, required String loginId, String? redirectUrl, SignInOptions? options});
+  Future<String> signUpOrIn(
+      {required DeliveryMethod method,
+      required String loginId,
+      String? redirectUrl,
+      SignInOptions? options});
 
   /// Updates an existing user by adding an [email] address.
   ///
@@ -323,7 +370,12 @@ abstract class DescopeMagicLink {
   ///
   /// **Important:** Make sure a default magic link URL is configured
   /// in the Descope console, or provided by this call via [redirectUrl].
-  Future<String> updateEmail({required String email, required String loginId, String? redirectUrl, required String refreshJwt, UpdateOptions? options});
+  Future<String> updateEmail(
+      {required String email,
+      required String loginId,
+      String? redirectUrl,
+      required String refreshJwt,
+      UpdateOptions? options});
 
   /// Updates an existing user by adding a [phone] number.
   ///
@@ -342,7 +394,13 @@ abstract class DescopeMagicLink {
   ///
   /// **Important:** Make sure a default magic link URL is configured
   /// in the Descope console, or provided by this call via [redirectUrl].
-  Future<String> updatePhone({required String phone, required DeliveryMethod method, required String loginId, String? redirectUrl, required String refreshJwt, UpdateOptions? options});
+  Future<String> updatePhone(
+      {required String phone,
+      required DeliveryMethod method,
+      required String loginId,
+      String? redirectUrl,
+      required String refreshJwt,
+      UpdateOptions? options});
 
   /// Verifies a magic link [token].
   ///
@@ -375,7 +433,8 @@ abstract class DescopeEnchantedLink {
   ///
   /// **Important:** Make sure a default enchanted link URL is configured
   /// in the Descope console, or provided via [redirectUrl] by this call.
-  Future<EnchantedLinkResponse> signUp({required String loginId, SignUpDetails? details, String? redirectUrl});
+  Future<EnchantedLinkResponse> signUp(
+      {required String loginId, SignUpDetails? details, String? redirectUrl});
 
   /// Authenticates an existing user using an enchanted link, sent via email.
   ///
@@ -386,7 +445,8 @@ abstract class DescopeEnchantedLink {
   ///
   /// **Important:** Make sure a default enchanted link URL is configured
   /// in the Descope console, or provided via [redirectUrl] by this call.
-  Future<EnchantedLinkResponse> signIn({required String loginId, String? redirectUrl, SignInOptions? options});
+  Future<EnchantedLinkResponse> signIn(
+      {required String loginId, String? redirectUrl, SignInOptions? options});
 
   /// Authenticates an existing user if one exists, or create a new user using an
   /// enchanted link, sent via email.
@@ -397,7 +457,8 @@ abstract class DescopeEnchantedLink {
   ///
   /// **Important:** Make sure a default enchanted link URL is configured
   /// in the Descope console, or provided via [redirectUrl] by this call.
-  Future<EnchantedLinkResponse> signUpOrIn({required String loginId, String? redirectUrl, SignInOptions? options});
+  Future<EnchantedLinkResponse> signUpOrIn(
+      {required String loginId, String? redirectUrl, SignInOptions? options});
 
   /// Updates an existing user by adding an email address.
   ///
@@ -413,7 +474,12 @@ abstract class DescopeEnchantedLink {
   /// as a `loginId` for the existing user, and to determine how to resolve conflicts
   /// if another user already exists with the same `loginId`. See the documentation
   /// for `UpdateOptions` for more details.
-  Future<EnchantedLinkResponse> updateEmail({required String email, required String loginId, String? redirectUrl, required String refreshJwt, UpdateOptions? options});
+  Future<EnchantedLinkResponse> updateEmail(
+      {required String email,
+      required String loginId,
+      String? redirectUrl,
+      required String refreshJwt,
+      UpdateOptions? options});
 
   /// Checks if an enchanted link authentication has been verified by the user.
   ///
@@ -441,7 +507,8 @@ abstract class DescopeEnchantedLink {
   /// given a default value of 2 minutes is used.
   ///
   /// To cancel it, you can wrap the response in a [CancelableOperation](https://pub.dev/documentation/async/latest/async/CancelableOperation-class.html).
-  Future<AuthenticationResponse> pollForSession({required String pendingRef, Duration? timeout});
+  Future<AuthenticationResponse> pollForSession(
+      {required String pendingRef, Duration? timeout});
 }
 
 /// Authenticate a user using an OAuth provider.
@@ -466,7 +533,10 @@ abstract class DescopeOAuth {
   ///
   /// **Important:** Make sure a default OAuth redirect URL is configured
   /// in the Descope console, or provided by this call via [redirectUrl].
-  Future<String> start({required OAuthProvider provider, String? redirectUrl, SignInOptions? options});
+  Future<String> start(
+      {required OAuthProvider provider,
+      String? redirectUrl,
+      SignInOptions? options});
 
   /// Completes an OAuth redirect chain.
   ///
@@ -507,7 +577,8 @@ abstract class DescopeOAuth {
   /// In particular, when using your own account make sure that the `Client ID` value
   /// matches the Bundle Identifier of your app. For more details see the
   /// [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).
-  Future<AuthenticationResponse> native({required OAuthProvider provider, SignInOptions? options});
+  Future<AuthenticationResponse> native(
+      {required OAuthProvider provider, SignInOptions? options});
 }
 
 /// Authenticate a user using SSO.
@@ -526,7 +597,10 @@ abstract class DescopeSso {
   ///
   /// **Important:** Make sure a SSO is set up correctly and a redirect URL is configured
   /// in the Descope console, or provided by this call via [redirectUrl].
-  Future<String> start({required String emailOrTenantId, String? redirectUrl, SignInOptions? options});
+  Future<String> start(
+      {required String emailOrTenantId,
+      String? redirectUrl,
+      SignInOptions? options});
 
   /// Completes an SSO redirect chain.
   ///
@@ -560,13 +634,15 @@ abstract class DescopePasskey {
   /// the optional information provided via the [details] object.
   /// If will only return an [AuthenticationResponse] successfully after the user
   /// creates a new passkey using their device.
-  Future<AuthenticationResponse> signUp({required String loginId, SignUpDetails? details});
+  Future<AuthenticationResponse> signUp(
+      {required String loginId, SignUpDetails? details});
 
   /// Authenticates an existing user by prompting for an existing passkey.
   ///
   /// This function will only return an [AuthenticationResponse] successfully after the user
   /// identified by [loginId] uses their existing passkey on their device.
-  Future<AuthenticationResponse> signIn({required String loginId, SignInOptions? options});
+  Future<AuthenticationResponse> signIn(
+      {required String loginId, SignInOptions? options});
 
   /// Authenticates an existing user if one exists or creates a new one.
   ///
@@ -576,7 +652,8 @@ abstract class DescopePasskey {
   /// This function will only return an [AuthenticationResponse] successfully after the user
   /// identified by [loginId] uses their existing passkey on their device or creates a new
   /// one, if the user is being created.
-  Future<AuthenticationResponse> signUpOrIn({required String loginId, SignInOptions? options});
+  Future<AuthenticationResponse> signUpOrIn(
+      {required String loginId, SignInOptions? options});
 
   /// Updates an existing user by adding a new passkey as an authentication method.
   ///
