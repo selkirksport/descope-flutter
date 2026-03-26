@@ -84,7 +84,7 @@ extension ConvertJWTResponse on JWTServerResponse {
       refreshToken = Token.decode(refreshJwt);
     }
     
-    return RefreshResponse(Token.decode(sessionJwt), refreshToken);
+    return RefreshResponse(Token.decode(sessionJwt), refreshToken, externalToken);
   }
 }
 

@@ -20,7 +20,8 @@ class AuthenticationResponse {
   /// A value for an external token if the authentication returns it.
   final String? externalToken;
 
-  AuthenticationResponse(this.sessionToken, this.refreshToken, this.isFirstAuthentication, this.user, this.externalToken);
+  AuthenticationResponse(this.sessionToken, this.refreshToken,
+      this.isFirstAuthentication, this.user, this.externalToken);
 }
 
 /// Returned from the refreshSession call.
@@ -34,7 +35,9 @@ class RefreshResponse {
   /// Optionally a refresh token
   final DescopeToken? refreshToken;
 
-  RefreshResponse(this.sessionToken, this.refreshToken);
+  final String? externalToken;
+
+  RefreshResponse(this.sessionToken, this.refreshToken, this.externalToken);
 }
 
 /// Returned from calls that start an enchanted link flow.
@@ -79,5 +82,6 @@ class PasswordPolicy {
   final bool number;
   final bool nonAlphanumeric;
 
-  PasswordPolicy(this.minLength, this.lowercase, this.uppercase, this.number, this.nonAlphanumeric);
+  PasswordPolicy(this.minLength, this.lowercase, this.uppercase, this.number,
+      this.nonAlphanumeric);
 }

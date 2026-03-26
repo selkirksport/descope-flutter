@@ -121,6 +121,7 @@ class DescopeSession {
   void updateTokens(RefreshResponse refreshResponse) {
     _sessionToken = refreshResponse.sessionToken;
     _refreshToken = refreshResponse.refreshToken ?? _refreshToken;
+    externalToken = refreshResponse.externalToken ?? externalToken;
   }
 
   /// Updates the session user's details with those from another [DescopeUser] value.
