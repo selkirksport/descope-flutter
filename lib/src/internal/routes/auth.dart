@@ -16,8 +16,8 @@ class Auth implements DescopeAuth {
   }
 
   @override
-   Future<RefreshResponse> refreshSession(String refreshJwt, {String? externalToken}) async {
-    return (await client.refresh(refreshJwt, externalToken: externalToken)).toRefreshResponse();
+  Future<RefreshResponse> refreshSession(String refreshJwt) async {
+    return (await client.refresh(refreshJwt)).toRefreshResponse();
   }
 
   @override
