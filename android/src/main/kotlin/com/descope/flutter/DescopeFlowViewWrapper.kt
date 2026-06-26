@@ -1,12 +1,15 @@
 package com.descope.flutter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
+import android.webkit.JavascriptInterface
 import androidx.core.net.toUri
 import com.descope.android.DescopeFlow
 import com.descope.android.DescopeFlowHook
 import com.descope.android.DescopeFlowView
 import com.descope.android.runJavaScript
+import com.descope.android.setUpWebView
 import com.descope.types.AuthenticationResponse
 import com.descope.types.DescopeException
 import com.descope.types.DescopeUser
@@ -34,13 +37,23 @@ class DescopeFlowViewWrapper(
     private val messenger: BinaryMessenger
 ) : PlatformView, MethodCallHandler {
 
+    private var capturedExternalToken: String? = null
+
+    @SuppressLint("JavascriptInterface")
+    private val externalTokenBridge = object {
+        @JavascriptInterface
+        fun setExternalToken(token: String?) {
+            capturedExternalToken = token?.takeIf { it.isNotEmpty() }
+        }
+    }
+
     private val channel = MethodChannel(messenger, "com.descope.flow/view_$id").apply {
         setMethodCallHandler(this@DescopeFlowViewWrapper)
     }
 
     private val flowView = DescopeFlowView(context).apply {
         // init DescopeFlow from args
-        val descopeFlow = args.toDescopeFlow()
+        val descopeFlow = args.toDescopeFlow(externalTokenBridge)
 
         // pipe listener callbacks through a flutter channel
         listener = object : DescopeFlowView.Listener {
@@ -50,7 +63,8 @@ class DescopeFlowViewWrapper(
 
             override fun onSuccess(response: AuthenticationResponse) {
                 try {
-                    channel.invokeMethod("onSuccess", response.toMap())
+                    channel.invokeMethod("onSuccess", response.toMap(capturedExternalToken))
+                    capturedExternalToken = null
                 } catch (e: Exception) {
                     channel.invokeMethod("onError", DescopeException("flutter_error", "Error in onSuccess callback", e.message).toMap())
                 }
@@ -94,7 +108,26 @@ class DescopeFlowViewWrapper(
 
 }
 
-fun Any?.toDescopeFlow(): DescopeFlow {
+private const val CAPTURE_EXTERNAL_TOKEN_SCRIPT = """
+(function() {
+    if (!window.flow || window.flow.__descopeFlutterExternalTokenWrapped) return;
+    const original = flow.onSuccess;
+    flow.onSuccess = function(data, url) {
+        try {
+            if (data) {
+                const parsed = JSON.parse(data);
+                if (parsed.externalToken) {
+                    descopeFlutterBridge.setExternalToken(parsed.externalToken);
+                }
+            }
+        } catch (e) {}
+        return original.call(flow, data, url);
+    };
+    flow.__descopeFlutterExternalTokenWrapped = true;
+})();
+"""
+
+fun Any?.toDescopeFlow(externalTokenBridge: Any): DescopeFlow {
     val map = this as? Map<*, *> ?: throw IllegalArgumentException("Flow options are required")
     val url = map["url"] as? String ?: throw IllegalArgumentException("Flow URL is required")
     val sdkVersion = map["sdkVersion"] as? String ?: throw IllegalArgumentException("SDK version is required")
@@ -106,6 +139,10 @@ fun Any?.toDescopeFlow(): DescopeFlow {
         (map["ssoRedirectCustomScheme"] as? String)?.let { ssoRedirectCustomScheme = it }
         (map["magicLinkRedirect"] as? String)?.let { magicLinkRedirect = it }
         hooks = listOf(
+            setUpWebView { webView ->
+                webView.addJavascriptInterface(externalTokenBridge, "descopeFlutterBridge")
+            },
+            runJavaScript(DescopeFlowHook.Event.Loaded, CAPTURE_EXTERNAL_TOKEN_SCRIPT),
             runJavaScript(DescopeFlowHook.Event.Loaded, """
                 window.descopeBridge.hostInfo.sdkName = 'flutter'
                 window.descopeBridge.hostInfo.sdkVersion = '$sdkVersion'
@@ -116,7 +153,7 @@ fun Any?.toDescopeFlow(): DescopeFlow {
 
 // Utilities
 
-private fun AuthenticationResponse.toMap(): Map<String, Any> = mutableMapOf<String, Any>(
+private fun AuthenticationResponse.toMap(externalToken: String? = null): Map<String, Any> = mutableMapOf<String, Any>(
     "sessionJwt" to sessionToken.jwt,
     "refreshJwt" to refreshToken.jwt,
     "user" to user.toMap(),
